@@ -719,10 +719,8 @@ local State = {
     TargetDungeonRound  = 1,
     AutoBuffPotions     = false,
     AutoTrainPotion     = false,
-    AutoCoinPotion      = false,
     AutoLuckPotion      = false,
     AutoDamagePotion    = false,
-    AutoHPPotion        = false,
 
     AutoCollectMoney    = false,
     AutoSellGear        = false,
