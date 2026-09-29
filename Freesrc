@@ -1343,10 +1343,8 @@ local function autoDrinkPotionsNow(forceAll)
 
     local potList = {
         { id = "TrainPotion", buff = "Train_1", enabled = State.AutoTrainPotion },
-        { id = "CoinPotion", buff = "Coin_1", enabled = State.AutoCoinPotion },
         { id = "LuckPotion", buff = "Luck_1", enabled = State.AutoLuckPotion },
         { id = "DamagePotion", buff = "Damage_1", enabled = State.AutoDamagePotion },
-        { id = "HPPotion", buff = "HP_1", enabled = State.AutoHPPotion },
     }
 
     local pData = nil
@@ -2057,12 +2055,6 @@ launchMainHub = function(deviceMode)
         Default = State.AutoTrainPotion,
         Callback = function(v) State.AutoTrainPotion = v; if v then autoDrinkPotionsNow() end; autoSaveConfig() end
     })
-    UIControls.AutoCoinPotion = SecPotions:Toggle({
-        Name = "ดื่ม Coin Potion (คูณเงิน x2)",
-        Flag = "AutoCoinPotion",
-        Default = State.AutoCoinPotion,
-        Callback = function(v) State.AutoCoinPotion = v; if v then autoDrinkPotionsNow() end; autoSaveConfig() end
-    })
     UIControls.AutoLuckPotion = SecPotions:Toggle({
         Name = "ดื่ม Luck Potion (คูณดวง x2)",
         Flag = "AutoLuckPotion",
@@ -2074,12 +2066,6 @@ launchMainHub = function(deviceMode)
         Flag = "AutoDamagePotion",
         Default = State.AutoDamagePotion,
         Callback = function(v) State.AutoDamagePotion = v; if v then autoDrinkPotionsNow() end; autoSaveConfig() end
-    })
-    UIControls.AutoHPPotion = SecPotions:Toggle({
-        Name = "ดื่ม HP Potion (เพิ่มเลือด x2)",
-        Flag = "AutoHPPotion",
-        Default = State.AutoHPPotion,
-        Callback = function(v) State.AutoHPPotion = v; if v then autoDrinkPotionsNow() end; autoSaveConfig() end
     })
     SecPotions:Button({
         Name = "⚡ ตรวจสอบและดื่มน้ำยาบัพทันที",
@@ -2863,7 +2849,7 @@ task.spawn(function()
     local lastEnchantCheck = 0
     local lastClassCheck = 0
     while _G.LucyHubRunning and _G.LucyHubActiveToken == myToken do
-        local anyPotionOn = State.AutoBuffPotions or State.AutoTrainPotion or State.AutoCoinPotion or State.AutoLuckPotion or State.AutoDamagePotion or State.AutoHPPotion
+        local anyPotionOn = State.AutoBuffPotions or State.AutoTrainPotion or State.AutoLuckPotion or State.AutoDamagePotion
         if anyPotionOn and (now - lastPotionCheck >= 2.0) then
             lastPotionCheck = now
             pcall(function() autoDrinkPotionsNow() end)
