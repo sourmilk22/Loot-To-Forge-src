@@ -1803,8 +1803,39 @@ launchMainHub = function(deviceMode)
         return src
     end
 
+    local function patchMobileFonts(src)
+        if not src or type(src) ~= "string" then return src end
+
+        -- 1. หัวข้อหลัก 22 (Main Titles: Window Title & Section Title)
+        src = src:gsub('(Items%["Title"%]%s*=%s*Instances:Create%("TextLabel",.-Text%s*=%s*Window%.Name.-TextSize%s*=%s*)16,', '%122,')
+        src = src:gsub('(Items%["Title"%]%s*=%s*Instances:Create%("TextLabel",.-Text%s*=%s*Section%.Name.-TextSize%s*=%s*)15,', '%122,')
+
+        -- 2. ข้อความฟังก์ชันหลัก 20 (Main Function Text: Tabs, Toggles, Buttons, Sliders, Dropdowns, Keybinds)
+        src = src:gsub('(Items%["Text"%]%s*=%s*Instances:Create%("TextLabel",.-Text%s*=%s*Page%.Name.-TextSize%s*=%s*)14,', '%120,')
+        src = src:gsub('(Items%["Text"%]%s*=%s*Instances:Create%("TextLabel",.-Text%s*=%s*Toggle%.Name.-TextSize%s*=%s*)14,', '%120,')
+        src = src:gsub('(Size%s*=%s*UDim2New%(1,%s*0,%s*0,%s*)18%)', '%124)')
+        src = src:gsub('(Items%["Text"%]%s*=%s*Instances:Create%("TextLabel",.-Text%s*=%s*Button%.Name.-TextSize%s*=%s*)14,', '%120,')
+        src = src:gsub('(Items%["Text"%]%s*=%s*Instances:Create%("TextLabel",.-Text%s*=%s*Slider%.Name.-TextSize%s*=%s*)14,', '%120,')
+        src = src:gsub('(Items%["Text"%]%s*=%s*Instances:Create%("TextLabel",.-Text%s*=%s*Dropdown%.Name.-TextSize%s*=%s*)14,', '%120,')
+        src = src:gsub('(Items%["Text"%]%s*=%s*Instances:Create%("TextLabel",.-Text%s*=%s*Keybind%.Name.-TextSize%s*=%s*)14,', '%120,')
+
+        -- 3. ข้อความย่อย 18 (Sub Text: Window SubName, Section Description, Values, Dropdown Options, Search)
+        src = src:gsub('(Items%["SubTitle"%]%s*=%s*Instances:Create%("TextLabel",.-Text%s*=%s*Window%.SubName.-TextSize%s*=%s*)14,', '%118,')
+        src = src:gsub('(Items%["Description"%]%s*=%s*Instances:Create%("TextLabel",.-Text%s*=%s*Section%.Description.-TextSize%s*=%s*)15,', '%118,')
+        src = src:gsub('(Items%["Value"%]%s*=%s*Instances:Create%("TextBox",.-TextSize%s*=%s*)14,', '%118,')
+        src = src:gsub('(Items%["RealDropdown"%]%s*=%s*Instances:Create%("TextButton",.-TextSize%s*=%s*)14,', '%118,')
+        src = src:gsub('(OptionText%s*=%s*Instances:Create%("TextLabel",.-TextSize%s*=%s*)14,', '%118,')
+        src = src:gsub('(Items%["SearchField"%]%s*=%s*Instances:Create%("TextBox",.-TextSize%s*=%s*)13,', '%118,')
+        src = src:gsub('(Items%["ModeSelect"%]%s*=%s*Instances:Create%("TextButton",.-TextSize%s*=%s*)13,', '%118,')
+
+        return src
+    end
+
     if codeStr then
         codeStr = patchMentalityUISource(codeStr)
+        if isMobileMode then
+            codeStr = patchMobileFonts(codeStr)
+        end
         local okExec, lib = pcall(function() return loadstring(codeStr)() end)
         if okExec and lib then
             Library = lib
@@ -2555,6 +2586,36 @@ launchMainHub = function(deviceMode)
     task.defer(applyAllToggleBorders)
     task.delay(0.5, applyAllToggleBorders)
     task.delay(1.5, applyAllToggleBorders)
+
+    -- Sweep and guarantee mobile font sizes on all elements (Mobile ONLY)
+    local function applyMobileFontHierarchy()
+        if not isMobileMode then return end
+        pcall(function()
+            local holder = Library and Library.Holder and Library.Holder.Instance
+            if not holder then return end
+            for _, desc in ipairs(holder:GetDescendants()) do
+                if desc:IsA("TextLabel") or desc:IsA("TextButton") or desc:IsA("TextBox") then
+                    local txt = desc.Text or ""
+                    -- 1. หัวข้อหลัก 22 (Main Titles)
+                    if txt == "Lucy HUB" or (desc.Position.Y.Offset == 10 and desc.TextSize < 22) then
+                        desc.TextSize = 22
+                    -- 2. ข้อความย่อย 18 (Sub Text)
+                    elseif txt == "Free Version" or (desc:IsA("TextBox") and desc.TextSize < 18 and desc.Size.X.Offset < 70) then
+                        desc.TextSize = 18
+                    -- 3. ข้อความฟังก์ชันหลัก 20 (Main Function Text)
+                    elseif #txt > 0 and desc.TextSize < 20 and desc.TextSize >= 12 then
+                        desc.TextSize = 20
+                    end
+                end
+            end
+        end)
+    end
+    if isMobileMode then
+        applyMobileFontHierarchy()
+        task.defer(applyMobileFontHierarchy)
+        task.delay(0.5, applyMobileFontHierarchy)
+        task.delay(1.5, applyMobileFontHierarchy)
+    end
 
     notify("Lucy HUB", "เปิดใช้งาน " .. (isMobileMode and string.format("[โหมดมือถือ (Scale %.2f)]", scaleVal) or "[โหมดคอมพิวเตอร์]") .. " สมบูรณ์ 100%!")
 end
